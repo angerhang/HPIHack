@@ -12,6 +12,7 @@ ids <- reducedData$id
 ids <- lapply(ids, function (x) substr(x, 2, nchar(x)))
 reducedData$id = ids
 
+
 # Remove boundary
 mylist <- reducedData$linked
 newList <- lapply(mylist, function (x) unlist(x))
@@ -30,21 +31,28 @@ getLabel <- function (newId){
   return(str)
   }
 
-src <- c()
-target <- c()
-src <- vector(mode = "character", length  = 425)
-target <- vector(mode = "character", length  = 425)
-index = 1
-for (i in 1:nrow(reducedData)) {
-  current <- reducedData[i ,]
-  if(is.vector(current$linked)){
-    edges <- unlist(current$linked)
-  } else {
-    edges = c(current$linked)
-  }
+
+goodData <- my.df[which(my.df$percentile >= 0.5), ]
+badData <- my.df[which(my.df$percentile <= 0.5), ]
+
+
+getNetwrok <- function(mySet) {
+  src <- c()
+  target <- c()
+  src <- vector(mode = "character", length  = nrow(mySet))
+  target <- vector(mode = "character", length  = nrow(mySet))
+  index = 1
   
-  if (length(edges) > 0) {
-    for (j in 1:length(edges)) {
+  for (i in 1:nrow(mySet)) {
+    current <- mySet[i ,]
+    if (is.vector(current$linked)) {
+      edges <- unlist(current$linked)
+    } else {
+      edges = c(current$linked)
+    }
+    
+    if (length(edges) > 0) {
+      for (j in 1:length(edges)) {
         if (edges[j] <= max &&
             length(getLabel(current$id)) > 0 &&
             length((getLabel(edges[j]))) > 0) {
@@ -52,9 +60,16 @@ for (i in 1:nrow(reducedData)) {
           target[index] <- getLabel(edges[j])
           index = index + 1
         }
+      }
     }
   }
+  
+  networkData <- data.frame(src, target)
+  simpleNetwork(networkData, zoom = TRUE)
 }
 
-networkData <- data.frame(src, target)   
-simpleNetwork(networkData)
+#
+getNetwrok(goodData)
+getNetwrok(badData)
+
+
